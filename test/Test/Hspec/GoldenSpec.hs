@@ -8,6 +8,7 @@ import qualified Test.Hspec.Core.Spec   as H
 import           Test.Hspec.Golden
 
 import           System.Directory
+import           System.Environment     (setEnv, unsetEnv)
 import           System.IO.Silently
 
 {-# ANN module "HLint: ignore Reduce duplication" #-}
@@ -93,3 +94,55 @@ spec =
           void $ runSpec $ fixtureGoldenTest fixtureContent
           goldenFile <- readFile ".golden/id-golden-sample-file/golden"
           goldenFile `shouldBe` fixtureContent
+
+    let doesNotUpdateGolden = do
+          writeFile goldenFilePath fixtureContent
+          output <- runSpec $ fixtureTest fixtureUpdatedContent
+          output `shouldContain` ["    Files golden and actual do not match."]
+          goldenFileContent <- readFile goldenFilePath
+          goldenFileContent `shouldBe` fixtureContent
+
+        doesUpdateGolden = do
+          writeFile goldenFilePath fixtureContent
+          output <- runSpec $ fixtureTest fixtureUpdatedContent
+          output `shouldContain` ["    Files golden and actual do not match."]
+          goldenFileContent <- readFile goldenFilePath
+          goldenFileContent `shouldBe` fixtureUpdatedContent
+
+    context "when UPDATE_HSPEC_GOLDEN is unset" $
+      it "does not update the golden file" $ do
+        unsetEnv "UPDATE_HSPEC_GOLDEN"
+        doesNotUpdateGolden
+
+    context "when UPDATE_HSPEC_GOLDEN is empty" $
+      it "does not update the golden file" $ do
+        setEnv "UPDATE_HSPEC_GOLDEN" ""
+        doesNotUpdateGolden
+
+    context "when UPDATE_HSPEC_GOLDEN=0" $
+      it "does not update the golden file" $ do
+        setEnv "UPDATE_HSPEC_GOLDEN" "0"
+        doesNotUpdateGolden
+
+    context "when UPDATE_HSPEC_GOLDEN=1" $
+      it "does update the golden file" $ do
+        setEnv "UPDATE_HSPEC_GOLDEN" "1"
+        doesNotUpdateGolden
+
+    -- Check that `UPDATE_HSPEC_GOLDEN` activates with some other non-empty
+    -- strings.
+    context "when UPDATE_HSPEC_GOLDEN=true" $
+      it "does update the golden file" $ do
+        setEnv "UPDATE_HSPEC_GOLDEN" "true"
+        doesNotUpdateGolden
+
+    context "when UPDATE_HSPEC_GOLDEN=yes" $
+      it "does update the golden file" $ do
+        setEnv "UPDATE_HSPEC_GOLDEN" "yes"
+        doesNotUpdateGolden
+
+    -- A little alarming, but we do document it!
+    context "when UPDATE_HSPEC_GOLDEN=no" $
+      it "does update the golden file" $ do
+        setEnv "UPDATE_HSPEC_GOLDEN" "no"
+        doesNotUpdateGolden

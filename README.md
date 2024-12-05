@@ -9,7 +9,7 @@ the expected output is updated.
 
 `hspec-golden` allows you to write golden tests using the popular `hspec`.
 
-## Usage
+## Writing golden tests
 
 You can write golden tests using `defaultGolden` helper:
 
@@ -65,6 +65,17 @@ spec =
          in myGoldenTest (show 'myTextFunc) textOutput
 ```
 
+## Updating golden tests
+
+There are two ways to update golden tests:
+
+1. [Install the `hspec-golden` CLI](#install-cli) and use `hgold --update
+   path/to/my/golden/tests` to copy files named `actual` over files named
+   `golden` recursively in the given directory tree.
+
+2. Run the golden tests with the `UPDATE_HSPEC_GOLDEN` environment variable set
+   to `1`.
+
 ## Install CLI
 
 You can install the `hspec-golden` command line interface (CLI) with `stack`:
@@ -107,6 +118,10 @@ Update the golden tests under `.myGoldenTest` directory:
 ```
 $ hgold -u .myGoldenTest
 ```
+
+This recursively traverses the given directory and copies any files named
+`actual` (that `hspec-golden` writes when a golden test is run, regardless of
+if the test passes or not) over the `golden` file in the same directory.
 
 ## Contributors ✨
 
